@@ -1,0 +1,79 @@
+<?php
+/*
+@ExceSQL
+developed by novhex
+
+https://github.com/novhex
+This class will export your database records into CSV file (comma separated values)
+
+Date created: October 10 2014
+
+*/
+
+class ExceSQL {
+	
+	
+	private $db_host='127.0.0.1';
+	private $db_username='root';
+	private $db_pass='';
+	private $db_name='seo';
+	private $query="SELECT * from blog";
+	private $csv_filename='MyXLSImport';
+	
+	
+			public function __construct() {
+				 mysql_connect($this->db_host,$this->db_username,$this->db_pass);
+				 mysql_select_db($this->db_name);
+			}
+
+
+
+			public function exportDataToCSV() {
+			
+			$header = '';
+			$result ='';
+			$exportData = mysql_query ($this->query);
+			 
+			$fields = mysql_num_fields ( $exportData );
+			 
+			for ( $i = 0; $i < $fields; $i++ )
+			{
+				$header .= mysql_field_name( $exportData , $i ) . "\t";
+			}
+			 
+			while( $row = mysql_fetch_row( $exportData ) )
+			{
+				$line = '';
+				foreach( $row as $value )
+				{                                            
+					if ( ( !isset( $value ) ) || ( $value == "" ) )
+					{
+						$value = "\t";
+					}
+					else
+					{
+						$value = str_replace( '"' , '""' , $value );
+						$value = '"' . $value . '"' . "\t";
+					}
+					$line .= $value;
+				}
+				$result .= trim( $line ) . "\n";
+			}
+			$result = str_replace( "\r" , "" , $result );
+			 
+			if ( $result == "" )
+			{
+				$result = "\nNo Record(s) Found!\n";                        
+			}
+ 
+			header("Content-type: application/octet-stream");
+			header("Content-Disposition: attachment; filename=$this->csv_filename.xls");
+			header("Pragma: no-cache");
+			header("Expires: 0");
+			print "$header\n$result";
+}
+}
+//create a new instance then call the exportDataToCSV method
+$ExceSQL=new ExceSQL;
+$ExceSQL->exportDataToCSV();
+?>
